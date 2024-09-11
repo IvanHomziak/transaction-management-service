@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  mysql-tms:
+    container_name: mysql-tms
+    image: mysql
+    ports:
+      - "3308:3307"
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin1234
+    networks:
+      - stack
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-padmin1234"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  application:
+    container_name: transaction-management-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env.docker
+    networks:
+      - stack
+    depends_on:
+      mysql-tms:
+        condition: service_healthy
+
+networks:
+  stack:
+    name: stack
+    driver: bridge
