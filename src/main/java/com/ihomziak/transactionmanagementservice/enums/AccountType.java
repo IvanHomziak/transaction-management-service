@@ -2,7 +2,7 @@ package com.ihomziak.transactionmanagementservice.enums;
 
 public enum AccountType {
 
-    CHECKING("Checking"), SAVINGS("Savings"), CREDIT("Credit");
+    CHECKING("CHECKING"), SAVINGS("SAVINGS"), CREDIT("CREDIT");
 
     private final String accountType;
 

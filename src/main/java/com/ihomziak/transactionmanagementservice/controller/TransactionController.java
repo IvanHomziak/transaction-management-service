@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/api")
 public class TransactionController {
 
     private final TransactionServiceImpl transactionService;
@@ -22,7 +22,7 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
-    @PostMapping
+    @PostMapping("/transaction")
     public ResponseEntity<TransactionResponseDTO> transfer(@RequestBody TransactionRequestDTO transactionDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.transactionService.processTransaction(transactionDTO));
     }

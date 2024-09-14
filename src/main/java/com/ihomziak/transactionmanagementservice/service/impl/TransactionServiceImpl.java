@@ -10,6 +10,7 @@ import com.ihomziak.transactionmanagementservice.exception.BalanceException;
 import com.ihomziak.transactionmanagementservice.exception.ClientNotFoundException;
 import com.ihomziak.transactionmanagementservice.mapper.MapStructureMapper;
 import com.ihomziak.transactionmanagementservice.service.TransactionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransRepository transRepository;
     private final MapStructureMapper mapper;
 
+    @Autowired
     public TransactionServiceImpl(AccountServiceImpl accountServiceImpl, TransRepository transRepository, MapStructureMapper mapper) {
         this.accountServiceImpl = accountServiceImpl;
         this.transRepository = transRepository;
@@ -43,10 +45,10 @@ public class TransactionServiceImpl implements TransactionService {
         AccountRequestDTO receiver = this.accountServiceImpl.getAccountByUuid(transactionRequestDTO.getReceiverUuid());
 
         sender.setBalance(sender.getBalance() - transactionRequestDTO.getAmount());
-        this.accountServiceImpl.updateAccountByUuid(sender);
+        sender.setClientUUID(transactionRequestDTO.getSenderUuid());
 
         receiver.setBalance(receiver.getBalance() + transactionRequestDTO.getAmount());
-        this.accountServiceImpl.updateAccountByUuid(receiver);
+        receiver.setClientUUID(transactionRequestDTO.getReceiverUuid());
 
         Transaction senderTransaction = new Transaction();
         senderTransaction.setAmount(sender.getBalance());
@@ -68,6 +70,9 @@ public class TransactionServiceImpl implements TransactionService {
 
         senderTransaction.setClient(senderClient);
         senderTransaction.setClient(receiverClient);
+
+        this.accountServiceImpl.updateAccountByUuid(sender);
+        this.accountServiceImpl.updateAccountByUuid(receiver);
 
         this.transRepository.save(senderTransaction);
         this.transRepository.save(receiverTransaction);
