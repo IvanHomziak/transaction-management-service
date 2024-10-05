@@ -14,7 +14,7 @@ ENV DB_USER=${DB_USER}
 ENV DB_PASS=${DB_PASS}
 
 # Expose port 8080
-EXPOSE 8080
+EXPOSE 9091
 
 # Set the working directory
 WORKDIR /app
