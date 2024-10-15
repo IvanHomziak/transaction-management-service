@@ -8,7 +8,15 @@ import lombok.Setter;
 public class TransactionResponseDTO {
 
     private String senderUuid;
-    private double senderBalance;
+    private Double senderBalance;
     private String recipientUuid;
-    private double recipientBalance;
+    private Double recipientBalance;
+
+
+    /**
+     * String transactionUuid;
+     * TimeDate startTransactionTime;
+     * TimeDate finishedTransactionTime;
+     * Enum
+     */
 }
