@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class TransactionEventsProducer {
 
-    @Value("${spring.kafka.topic.transfer-transactions-name}")
+    @Value("${spring.kafka.topic.transfer-transactions-topic}")
     private String TRANSFER_TRANSACTION_TOPIC;
 
     private final KafkaTemplate<Integer, String> kafkaTemplate;
@@ -38,7 +38,7 @@ public class TransactionEventsProducer {
         log.info("Start transaction: {}", transactionRequestDTO);
 
         log.info("Saving transaction to transaction-db: {}", transactionRequestDTO);
-        Transaction transaction = this.transactionService.saveTransaction(transactionRequestDTO);
+        Transaction transaction = this.transactionService.saveTransaction(transactionRequestDTO);     // store transaction in Redis
         transactionRequestDTO.setTransactionUuid(transaction.getTransactionUuid());
 
         log.info("Sent transaction: {}", transaction);
