@@ -3,7 +3,10 @@ package com.ihomziak.transactionmanagementservice.producer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ihomziak.transactionmanagementservice.dto.TransactionRequestDTO;
+import com.ihomziak.transactionmanagementservice.entity.Transaction;
+import com.ihomziak.transactionmanagementservice.service.TransactionService;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -17,33 +20,43 @@ import java.util.concurrent.CompletableFuture;
 public class TransactionEventsProducer {
 
     @Value("${spring.kafka.topic.transfer-transactions-name}")
-    private String topic;
+    private String TRANSFER_TRANSACTION_TOPIC;
 
     private final KafkaTemplate<Integer, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final TransactionService transactionService;
 
 
     @Autowired
-    public TransactionEventsProducer(KafkaTemplate<Integer, String> kafkaTemplate, ObjectMapper objectMapper) {
+    public TransactionEventsProducer(KafkaTemplate<Integer, String> kafkaTemplate, ObjectMapper objectMapper, TransactionService transactionService) {
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
+        this.transactionService = transactionService;
     }
 
-    public CompletableFuture<SendResult<Integer, String>> sendTransaction(TransactionRequestDTO transactionRequestDTO) throws JsonProcessingException {
-        log.info(transactionRequestDTO.toString());
-        var key = transactionRequestDTO.getTransactionEventId();
-        var value = objectMapper.writeValueAsString(transactionRequestDTO);
+    public CompletableFuture<SendResult<Integer, String>> sendFounds(TransactionRequestDTO transactionRequestDTO) throws JsonProcessingException {
+        log.info("Start transaction: {}", transactionRequestDTO);
 
-        var completableFuture = kafkaTemplate.send(topic, key, value);
+        log.info("Saving transaction to transaction-db: {}", transactionRequestDTO);
+        Transaction transaction = this.transactionService.saveTransaction(transactionRequestDTO);
+        transactionRequestDTO.setTransactionUuid(transaction.getTransactionUuid());
 
-        return completableFuture
+        log.info("Sent transaction: {}", transaction);
+        Integer key = transactionRequestDTO.getTransactionEventId();
+        String value = objectMapper.writeValueAsString(transactionRequestDTO);
+
+        CompletableFuture<SendResult<Integer, String>> completableFuture = kafkaTemplate.send(TRANSFER_TRANSACTION_TOPIC, key, value);
+
+        completableFuture
                 .whenComplete((sendResult, throwable) -> {
                     if (throwable != null) {
-                        handleFailure(key,value, throwable);
+                        handleFailure(key, value, throwable);
                     } else {
                         handleSeccess(key, value, sendResult);
                     }
                 });
+
+        return completableFuture;
     }
 
     private void handleSeccess(Integer key, String value, SendResult<Integer, String> sendResult) {

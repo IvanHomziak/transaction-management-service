@@ -2,7 +2,9 @@ package com.ihomziak.transactionmanagementservice.enums;
 
 public enum TransactionType {
 
-    TRANSFER("Transfer");
+    TRANSFER("TRANSFER"),
+    DEPOSIT("DEPOSIT"),
+    WITHDRAW("WITHDRAW");
 
     private final String name;
 

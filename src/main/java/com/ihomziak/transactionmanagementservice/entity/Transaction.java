@@ -1,11 +1,13 @@
 package com.ihomziak.transactionmanagementservice.entity;
 
+import com.ihomziak.transactionmanagementservice.enums.TransactionStatus;
 import com.ihomziak.transactionmanagementservice.enums.TransactionType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
@@ -20,22 +22,33 @@ public class Transaction {
     @Column(name = "transaction_id")
     private long transactionId;
 
-    @Column(name = "account_number")
-    private String accountNumber;
+    @Column(name = "transaction_uuid")
+    private String transactionUuid;
+
+    @Column(name = "sender_uuid")
+    private String senderUuid;
+
+    @Column(name = "receiver_uuid")
+    private String receiverUuid;
 
     @Column(name = "amount")
     private double amount;
 
-    @CreatedDate
-    @Column(name = "transaction_date", updatable = false)
-    private LocalDateTime transactionDate;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_status")
+    private TransactionStatus transactionStatus;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type")
     private TransactionType transactionType;
 
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false)
-    private Client client;
+    @CreatedDate
+    @Column(name = "transaction_date", updatable = false)
+    private LocalDateTime transactionDate;
+
+    @LastModifiedDate
+    @Column(name = "last_update")
+    private LocalDateTime lastUpdate;
+
+
 }

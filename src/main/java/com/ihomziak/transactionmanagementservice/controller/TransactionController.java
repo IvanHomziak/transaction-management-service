@@ -22,7 +22,7 @@ public class TransactionController {
 
     @PostMapping("/transaction")
     public ResponseEntity<TransactionRequestDTO> transfer(@RequestBody TransactionRequestDTO transactionDTO) throws JsonProcessingException {
-        this.eventsProducer.sendTransaction(transactionDTO);
+        this.eventsProducer.sendFounds(transactionDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(transactionDTO);
     }
 }

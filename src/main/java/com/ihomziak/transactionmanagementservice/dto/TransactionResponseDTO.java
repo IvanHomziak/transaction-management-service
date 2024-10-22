@@ -1,16 +1,22 @@
 package com.ihomziak.transactionmanagementservice.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.ihomziak.transactionmanagementservice.enums.TransactionStatus;
+import lombok.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class TransactionResponseDTO {
 
-    private String senderUuid;
-    private Double senderBalance;
-    private String recipientUuid;
-    private Double recipientBalance;
+    private Integer transactionEventId;
+    private String transactionUuid;
+    private TransactionStatus transactionStatus;
+    private String errorMessage;
+    private Double updatedSenderBalance;
+    private Double updatedReceiverBalance;
+
 
 
     /**
