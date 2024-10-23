@@ -1,4 +1,4 @@
-package com.ihomziak.transactionmanagementservice.enums;
+package com.ihomziak.transactionmanagementservice.utils;
 
 public enum TransactionStatus {
 

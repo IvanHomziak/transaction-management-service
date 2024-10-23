@@ -6,7 +6,6 @@ import com.ihomziak.transactionmanagementservice.dao.TransactionRepository;
 import com.ihomziak.transactionmanagementservice.dto.TransactionRequestDTO;
 import com.ihomziak.transactionmanagementservice.dto.TransactionResponseDTO;
 import com.ihomziak.transactionmanagementservice.entity.Transaction;
-import com.ihomziak.transactionmanagementservice.enums.TransactionStatus;
 import com.ihomziak.transactionmanagementservice.exception.TransactionNotFoundException;
 import com.ihomziak.transactionmanagementservice.service.TransactionService;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +39,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setAmount(transactionRequestDTO.getAmount());
         transaction.setTransactionDate(LocalDateTime.now());
 
-        transaction.setTransactionStatus(TransactionStatus.NEW);
+        transaction.setTransactionStatus(transactionRequestDTO.getTransactionStatus());
         transaction.setTransactionType(transactionRequestDTO.getTransactionType());
 
         return transactionRepository.save(transaction);
