@@ -4,11 +4,11 @@ import com.ihomziak.transactionmanagementservice.utils.TransactionStatus;
 import com.ihomziak.transactionmanagementservice.utils.TransactionType;
 import lombok.*;
 
+@Builder
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@NoArgsConstructor
 public class TransactionRequestDTO {
 
     private Integer transactionEventId;

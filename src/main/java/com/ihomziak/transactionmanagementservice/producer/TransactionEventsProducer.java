@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ihomziak.transactionmanagementservice.dto.TransactionRequestDTO;
 import com.ihomziak.transactionmanagementservice.entity.Transaction;
+import com.ihomziak.transactionmanagementservice.mapper.impl.MapStructureMapperImpl;
+import com.ihomziak.transactionmanagementservice.service.RedisService;
 import com.ihomziak.transactionmanagementservice.service.TransactionService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,6 +15,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -25,13 +29,17 @@ public class TransactionEventsProducer {
     private final KafkaTemplate<Integer, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
     private final TransactionService transactionService;
+    private final RedisService redisService;
+    private final MapStructureMapperImpl mapper;
 
 
     @Autowired
-    public TransactionEventsProducer(KafkaTemplate<Integer, String> kafkaTemplate, ObjectMapper objectMapper, TransactionService transactionService) {
+    public TransactionEventsProducer(KafkaTemplate<Integer, String> kafkaTemplate, ObjectMapper objectMapper, TransactionService transactionService, RedisService redisService, MapStructureMapperImpl mapper) {
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
         this.transactionService = transactionService;
+        this.redisService = redisService;
+        this.mapper = mapper;
     }
 
     public CompletableFuture<SendResult<Integer, String>> sendFounds(TransactionRequestDTO transactionRequestDTO) throws JsonProcessingException {
@@ -44,6 +52,34 @@ public class TransactionEventsProducer {
         log.info("Sent transaction: {}", transaction);
         Integer key = transactionRequestDTO.getTransactionEventId();
         String value = objectMapper.writeValueAsString(transactionRequestDTO);
+
+        CompletableFuture<SendResult<Integer, String>> completableFuture = kafkaTemplate.send(TRANSFER_TRANSACTION_TOPIC, key, value);
+
+        completableFuture
+                .whenComplete((sendResult, throwable) -> {
+                    if (throwable != null) {
+                        handleFailure(key, value, throwable);
+                    } else {
+                        handleSeccess(key, value, sendResult);
+                    }
+                });
+
+        return completableFuture;
+    }
+
+    public CompletableFuture<SendResult<Integer, String>> sendFounds2(TransactionRequestDTO transactionRequestDTO) throws JsonProcessingException {
+        log.info("Start transaction: {}", transactionRequestDTO);
+
+        log.info("Saving transaction to transaction-db: {}", transactionRequestDTO);
+        Transaction transaction = this.mapper.mapToTransaction(transactionRequestDTO);
+        transaction.setTransactionDate(LocalDateTime.now());
+        transaction.setTransactionUuid(UUID.randomUUID().toString());
+
+        this.redisService.addRedis(transaction);   // store transaction in Redis
+
+        log.info("Sent transaction: {}", transaction);
+        Integer key = transactionRequestDTO.getTransactionEventId();
+        String value = objectMapper.writeValueAsString(transaction);
 
         CompletableFuture<SendResult<Integer, String>> completableFuture = kafkaTemplate.send(TRANSFER_TRANSACTION_TOPIC, key, value);
 

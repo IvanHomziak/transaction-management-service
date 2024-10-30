@@ -25,4 +25,10 @@ public class TransactionController {
         this.eventsProducer.sendFounds(transactionDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(transactionDTO);
     }
+
+    @PostMapping("/transaction2")
+    public ResponseEntity<TransactionRequestDTO> transfer2(@RequestBody TransactionRequestDTO transactionDTO) throws JsonProcessingException {
+        this.eventsProducer.sendFounds2(transactionDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(transactionDTO);
+    }
 }

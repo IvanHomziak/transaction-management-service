@@ -10,4 +10,6 @@ public interface TransactionService {
     Transaction saveTransaction(TransactionRequestDTO transactionRequestDTO);
 
     void processTransactionAnswer(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException;
+
+    void processTransactionAnswer2(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException;
 }

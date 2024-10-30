@@ -19,9 +19,15 @@ public class TransactionEventConsumer {
         this.transactionServiceImpl = transactionServiceImpl;
     }
 
+//    @KafkaListener(topics = {"${spring.kafka.topic.transaction-results-topic}"})
+//    public void onMessage(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
+//        log.info("Received ConsumerRecord: {}", consumerRecord.value());
+//        transactionServiceImpl.processTransactionAnswer(consumerRecord);
+//    }
+
     @KafkaListener(topics = {"${spring.kafka.topic.transaction-results-topic}"})
-    public void onMessage(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
+    public void onMessage2(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
         log.info("Received ConsumerRecord: {}", consumerRecord.value());
-        transactionServiceImpl.processTransactionAnswer(consumerRecord);
+        transactionServiceImpl.processTransactionAnswer2(consumerRecord);
     }
 }
