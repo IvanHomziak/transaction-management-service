@@ -1,18 +1,16 @@
 package com.ihomziak.transactionmanagementservice.mapper.impl;
 
 import com.ihomziak.transactionmanagementservice.dto.TransactionRequestDTO;
+import com.ihomziak.transactionmanagementservice.dto.TransactionResponseDTO;
 import com.ihomziak.transactionmanagementservice.entity.Transaction;
 import com.ihomziak.transactionmanagementservice.mapper.MapStructureMapper;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Component
 public class MapStructureMapperImpl implements MapStructureMapper {
 
     @Override
-    public Transaction mapToTransaction(TransactionRequestDTO transactionRequestDTO) {
+    public Transaction mapTransactionRequestDTOToTransaction(TransactionRequestDTO transactionRequestDTO) {
         Transaction transaction = new Transaction();
         transaction.setSenderUuid(transactionRequestDTO.getSenderUuid());
         transaction.setReceiverUuid(transactionRequestDTO.getReceiverUuid());
@@ -21,5 +19,14 @@ public class MapStructureMapperImpl implements MapStructureMapper {
         transaction.setTransactionType(transactionRequestDTO.getTransactionType());
 
         return transaction;
+    }
+
+    @Override
+    public TransactionResponseDTO mapTransactionToTransactionResponseDTO(Transaction transaction) {
+        TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO();
+
+        transactionResponseDTO.setTransactionUuid(transaction.getTransactionUuid());
+        transactionResponseDTO.setTransactionStatus(transaction.getTransactionStatus());
+        return transactionResponseDTO;
     }
 }
