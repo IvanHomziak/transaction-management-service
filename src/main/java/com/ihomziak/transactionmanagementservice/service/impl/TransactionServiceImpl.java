@@ -11,6 +11,7 @@ import com.ihomziak.transactionmanagementservice.exception.TransactionNotFoundEx
 import com.ihomziak.transactionmanagementservice.mapper.impl.MapStructureMapperImpl;
 import com.ihomziak.transactionmanagementservice.producer.TransactionEventsProducer;
 import com.ihomziak.transactionmanagementservice.service.TransactionService;
+import com.ihomziak.transactionmanagementservice.utils.TransactionStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +45,22 @@ public class TransactionServiceImpl implements TransactionService {
         log.info("Save transaction into REDIS: {}", transactionDTO);
         Transaction transaction = this.structureMapper.mapTransactionRequestDTOToTransaction(transactionDTO);
         transaction.setTransactionUuid(UUID.randomUUID().toString());
+        transaction.setTransactionDate(LocalDateTime.now());
 
         String object = objectMapper.writeValueAsString(transaction);
         this.redisCacheRepository.saveToRedis(transaction.getTransactionUuid(), object);
 
         log.info("Sending transaction request: {}", transactionDTO);
         this.transactionEventsProducer.sendTransactionMessage(transactionDTO.getTransactionEventId(), object);
+
+        if (
+                transaction.getTransactionStatus().equals(TransactionStatus.NEW) ||
+                transaction.getTransactionStatus().equals(TransactionStatus.COMPLETED) ||
+                transaction.getTransactionStatus().equals(TransactionStatus.FAILED)
+        ) {
+            log.info("Save transaction to data warehouse. transactionUuid: {}, status: {}", transaction.getTransactionUuid(), transaction.getTransactionStatus());
+            this.transactionRepository.save(transaction);
+        }
 
         return this.structureMapper.mapTransactionToTransactionResponseDTO(transaction);
     }

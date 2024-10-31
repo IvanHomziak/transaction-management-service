@@ -21,7 +21,7 @@ public class TransactionController {
     }
 
     @PostMapping("/transaction")
-    public ResponseEntity<TransactionResponseDTO> transfer2(@RequestBody TransactionRequestDTO transactionDTO) throws JsonProcessingException {
+    public ResponseEntity<TransactionResponseDTO> sendTransaction(@RequestBody TransactionRequestDTO transactionDTO) throws JsonProcessingException {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.transactionService.sendTransaction(transactionDTO));
     }
 }
