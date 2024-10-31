@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -41,6 +42,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @Transactional
     public TransactionResponseDTO sendTransaction(TransactionRequestDTO transactionDTO) throws JsonProcessingException {
         log.info("Save transaction into REDIS: {}", transactionDTO);
         Transaction transaction = this.structureMapper.mapTransactionRequestDTOToTransaction(transactionDTO);
@@ -66,7 +68,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public void processTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
+    @Transactional
+    public void receiveTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
         log.info("Consumer record: {}", consumerRecord.value());
 
         TransactionResponseDTO transactionResponseDTO = objectMapper.readValue(consumerRecord.value(), TransactionResponseDTO.class);
