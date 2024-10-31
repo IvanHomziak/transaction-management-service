@@ -6,7 +6,7 @@ USE transactiondatabase;
 
 -- Create the `transaction` table
 CREATE TABLE IF NOT EXISTS transaction (
-                                           transaction_id BIGINT AUTO_INCREMENT PRIMARY KEY,         -- Primary key for transaction
+                                           transaction_id BIGINT(20) AUTO_INCREMENT PRIMARY KEY,     -- Primary key for transaction
                                            transaction_uuid VARCHAR(255) NOT NULL,                   -- UUID of the transaction
                                            sender_uuid VARCHAR(255) NOT NULL,                        -- UUID of the sender
                                            receiver_uuid VARCHAR(255) NOT NULL,                      -- UUID of the receiver

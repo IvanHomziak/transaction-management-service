@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -69,7 +70,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public void receiveTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
+    public void processTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
         log.info("Consumer record: {}", consumerRecord.value());
 
         TransactionResponseDTO transactionResponseDTO = objectMapper.readValue(consumerRecord.value(), TransactionResponseDTO.class);
@@ -78,24 +79,27 @@ public class TransactionServiceImpl implements TransactionService {
             throw new RuntimeException("Transaction response error: " + transactionResponseDTO.getErrorMessage());
         }
 
-        String dbObject = this.redisCacheRepository.findTransactionByIdKey(transactionResponseDTO.getTransactionUuid());
+        // Fetch the transaction from the database, ensuring we have the primary key (transactionId)
+        Optional<Transaction> existingTransactionOpt = Optional.ofNullable(transactionRepository.findTransactionByTransactionUuid(transactionResponseDTO.getTransactionUuid()));
 
-        if (dbObject == null || dbObject.isEmpty()) {
-            log.info("Transaction with UUID {} not found", transactionResponseDTO.getTransactionUuid());
+        if (existingTransactionOpt.isEmpty()) {
+            log.info("Transaction with UUID {} not found in database", transactionResponseDTO.getTransactionUuid());
             throw new TransactionNotFoundException("Transaction with UUID " + transactionResponseDTO.getTransactionUuid() + " not found");
         }
 
-        Transaction transaction = objectMapper.readValue(dbObject, Transaction.class);
-        transaction.setTransactionStatus(transactionResponseDTO.getTransactionStatus());
-        transaction.setLastUpdate(LocalDateTime.now());
+        Transaction updatedTransaction = existingTransactionOpt.get();
+        updatedTransaction.setTransactionStatus(transactionResponseDTO.getTransactionStatus());
+        updatedTransaction.setLastUpdate(LocalDateTime.now());
 
-        String updatedObject = objectMapper.writeValueAsString(transaction);
+        // Save the updated transaction in the database (this will update instead of insert)
+        this.transactionRepository.save(updatedTransaction);
+
+        // Update Redis with the latest transaction data
+        String updatedObject = objectMapper.writeValueAsString(updatedTransaction);
         log.info("Update transaction in REDIS db, updatedObject: {}", updatedObject);
+        this.redisCacheRepository.saveToRedis(updatedTransaction.getTransactionUuid(), updatedObject);
 
-        this.redisCacheRepository.saveToRedis(transactionResponseDTO.getTransactionUuid(), dbObject);
-
-        log.info("Save transaction into data warehouse");
-        this.transactionRepository.save(transaction);
-        log.info("Transaction with UUID {} successfully updated, transaction status: {}", transactionResponseDTO.getTransactionUuid(), transaction.getTransactionStatus());
+        log.info("Transaction with UUID {} successfully updated, transaction status: {}", transactionResponseDTO.getTransactionUuid(), updatedTransaction.getTransactionStatus());
     }
+
 }

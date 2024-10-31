@@ -7,7 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 public interface TransactionService {
 
-    void receiveTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException;
+    void processTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException;
 
     TransactionResponseDTO sendTransaction(TransactionRequestDTO transactionDTO) throws JsonProcessingException;
 }

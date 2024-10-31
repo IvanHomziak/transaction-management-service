@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+
+    Transaction findTransactionByTransactionUuid(String transactionUuid);
 }
