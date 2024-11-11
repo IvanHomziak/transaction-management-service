@@ -13,6 +13,10 @@ public class MapStructureMapperImpl implements MapStructureMapper {
 
     @Override
     public Transaction mapTransactionRequestDTOToTransaction(TransactionRequestDTO transactionRequestDTO) {
+        if (transactionRequestDTO == null) {
+            return null;
+        }
+
         Transaction transaction = new Transaction();
         transaction.setSenderUuid(transactionRequestDTO.getSenderUuid());
         transaction.setReceiverUuid(transactionRequestDTO.getReceiverUuid());
@@ -23,6 +27,10 @@ public class MapStructureMapperImpl implements MapStructureMapper {
 
     @Override
     public TransactionResponseDTO mapTransactionToTransactionResponseDTO(Transaction transaction) {
+        if (transaction == null) {
+            return null;
+        }
+
         return TransactionResponseDTO.builder()
                 .transactionUuid(transaction.getTransactionUuid())
                 .transactionStatus(transaction.getTransactionStatus())
@@ -31,6 +39,10 @@ public class MapStructureMapperImpl implements MapStructureMapper {
 
     @Override
     public TransactionStatusResponseDTO mapTransactionToTransactionStatusResponseDTO(Transaction transaction) {
+        if (transaction == null) {
+            return null;
+        }
+
         return TransactionStatusResponseDTO.builder()
                 .transactionUuid(transaction.getTransactionUuid())
                 .startTransactionTime(transaction.getTransactionDate())
@@ -40,6 +52,10 @@ public class MapStructureMapperImpl implements MapStructureMapper {
 
     @Override
     public TransactionEventRequestDTO mapTransactionToTransactionEventRequestDTO(Transaction transaction) {
+        if (transaction == null) {
+            return null;
+        }
+
         return TransactionEventRequestDTO.builder()
                 .senderUuid(transaction.getSenderUuid())
                 .receiverUuid(transaction.getReceiverUuid())
