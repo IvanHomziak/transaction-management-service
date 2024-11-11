@@ -3,6 +3,7 @@ package com.ihomziak.transactionmanagementservice.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ihomziak.transactionmanagementservice.dto.TransactionRequestDTO;
 import com.ihomziak.transactionmanagementservice.dto.TransactionResponseDTO;
+import com.ihomziak.transactionmanagementservice.dto.TransactionStatusResponseDTO;
 import com.ihomziak.transactionmanagementservice.service.impl.TransactionServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,12 @@ public class TransactionController {
     }
 
     @PostMapping("/transaction")
-    public ResponseEntity<TransactionResponseDTO> sendTransaction(@RequestBody TransactionRequestDTO transactionDTO) throws JsonProcessingException {
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.transactionService.sendTransaction(transactionDTO));
+    public ResponseEntity<TransactionStatusResponseDTO> createTransaction(@RequestBody TransactionRequestDTO transactionDTO) throws JsonProcessingException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.transactionService.createTransaction(transactionDTO));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TransactionResponseDTO> getTransaction(@RequestParam("id") Long id) throws JsonProcessingException {
+        return null;
     }
 }

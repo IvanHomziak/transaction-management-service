@@ -1,7 +1,6 @@
 package com.ihomziak.transactionmanagementservice.entity;
 
-import com.ihomziak.transactionmanagementservice.utils.TransactionStatus;
-import com.ihomziak.transactionmanagementservice.utils.TransactionType;
+import com.ihomziak.transactioncommon.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,10 +36,6 @@ public class Transaction {
     @Column(name = "transaction_status")
     private TransactionStatus transactionStatus;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_type")
-    private TransactionType transactionType;
-
     @CreatedDate
     @Column(name = "transaction_date", updatable = false)
     private LocalDateTime transactionDate;
@@ -48,6 +43,4 @@ public class Transaction {
     @LastModifiedDate
     @Column(name = "last_update")
     private LocalDateTime lastUpdate;
-
-
 }

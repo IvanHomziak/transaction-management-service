@@ -1,8 +1,8 @@
 package com.ihomziak.transactionmanagementservice.dao;
 
-public interface RedisCacheRepository {
+public interface TransactionCacheRepository {
 
-    void saveToRedis(String uuid, String object);
+    void saveTransaction(String uuid, String object);
 
     String findTransactionByIdKey(String transactionId);
 }

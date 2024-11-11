@@ -1,6 +1,6 @@
 package com.ihomziak.transactionmanagementservice.dao.impl;
 
-import com.ihomziak.transactionmanagementservice.dao.RedisCacheRepository;
+import com.ihomziak.transactionmanagementservice.dao.TransactionCacheRepository;
 import com.ihomziak.transactionmanagementservice.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -8,17 +8,17 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class RedisCacheRepositoryImpl implements RedisCacheRepository {
+public class TransactionCacheRepositoryImpl implements TransactionCacheRepository {
 
     private final RedisUtil<String> redisStringUtil;
 
     @Autowired
-    public RedisCacheRepositoryImpl(RedisUtil<String> redisStringUtil) {
+    public TransactionCacheRepositoryImpl(RedisUtil<String> redisStringUtil) {
         this.redisStringUtil = redisStringUtil;
     }
 
     @Override
-    public void saveToRedis(String uuid, String object) {
+    public void saveTransaction(String uuid, String object) {
         redisStringUtil.putValue(uuid, object);
         redisStringUtil.setExpire(uuid, 10, TimeUnit.MINUTES);
     }

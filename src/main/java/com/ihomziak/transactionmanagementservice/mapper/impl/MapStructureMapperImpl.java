@@ -1,7 +1,9 @@
 package com.ihomziak.transactionmanagementservice.mapper.impl;
 
+import com.ihomziak.transactionmanagementservice.dto.TransactionEventRequestDTO;
 import com.ihomziak.transactionmanagementservice.dto.TransactionRequestDTO;
 import com.ihomziak.transactionmanagementservice.dto.TransactionResponseDTO;
+import com.ihomziak.transactionmanagementservice.dto.TransactionStatusResponseDTO;
 import com.ihomziak.transactionmanagementservice.entity.Transaction;
 import com.ihomziak.transactionmanagementservice.mapper.MapStructureMapper;
 import org.springframework.stereotype.Component;
@@ -16,17 +18,34 @@ public class MapStructureMapperImpl implements MapStructureMapper {
         transaction.setReceiverUuid(transactionRequestDTO.getReceiverUuid());
         transaction.setAmount(transactionRequestDTO.getAmount());
         transaction.setTransactionStatus(transactionRequestDTO.getTransactionStatus());
-        transaction.setTransactionType(transactionRequestDTO.getTransactionType());
-
         return transaction;
     }
 
     @Override
     public TransactionResponseDTO mapTransactionToTransactionResponseDTO(Transaction transaction) {
-        TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO();
+        return TransactionResponseDTO.builder()
+                .transactionUuid(transaction.getTransactionUuid())
+                .transactionStatus(transaction.getTransactionStatus())
+                .build();
+    }
 
-        transactionResponseDTO.setTransactionUuid(transaction.getTransactionUuid());
-        transactionResponseDTO.setTransactionStatus(transaction.getTransactionStatus());
-        return transactionResponseDTO;
+    @Override
+    public TransactionStatusResponseDTO mapTransactionToTransactionStatusResponseDTO(Transaction transaction) {
+        return TransactionStatusResponseDTO.builder()
+                .transactionUuid(transaction.getTransactionUuid())
+                .startTransactionTime(transaction.getTransactionDate())
+                .finishedTransactionTime(transaction.getLastUpdate())
+                .build();
+    }
+
+    @Override
+    public TransactionEventRequestDTO mapTransactionToTransactionEventRequestDTO(Transaction transaction) {
+        return TransactionEventRequestDTO.builder()
+                .senderUuid(transaction.getSenderUuid())
+                .receiverUuid(transaction.getReceiverUuid())
+                .amount(transaction.getAmount())
+                .transactionStatus(transaction.getTransactionStatus())
+                .transactionUuid(transaction.getTransactionUuid())
+                .build();
     }
 }
