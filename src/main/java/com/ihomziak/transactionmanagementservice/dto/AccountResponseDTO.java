@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 public class AccountResponseDTO {
-
     private long accountId;
     private AccountHolderDTO accountHolderDTO;
     private String accountNumber;

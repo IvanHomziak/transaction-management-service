@@ -15,11 +15,9 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import io.lettuce.core.ReadFrom;
-import lombok.RequiredArgsConstructor;
 
 @Slf4j
 @Configuration
-//@EnableRedisRepositories
 public class RedisConfig {
 
     private final RedisProperties redisProperties;
@@ -39,7 +37,7 @@ public class RedisConfig {
         RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration()
                 .master(redisProperties.getSentinel().getMaster());
 
-        redisProperties.getSentinel().getNodes().forEach(s -> sentinelConfig.sentinel(s.split(":")[0],Integer.valueOf(s.split(":")[1])));
+        redisProperties.getSentinel().getNodes().forEach(s -> sentinelConfig.sentinel(s.split(":")[0], Integer.valueOf(s.split(":")[1])));
         sentinelConfig.setPassword(RedisPassword.of(redisProperties.getPassword()));
         return new LettuceConnectionFactory(sentinelConfig, clientConfig);
     }

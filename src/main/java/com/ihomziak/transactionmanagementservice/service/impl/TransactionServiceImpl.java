@@ -2,12 +2,9 @@ package com.ihomziak.transactionmanagementservice.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ihomziak.transactionmanagementservice.dao.CacheRepository;
 import com.ihomziak.transactionmanagementservice.dao.TransactionRepository;
-import com.ihomziak.transactionmanagementservice.dao.impl.TransactionCacheRepositoryImpl;
-import com.ihomziak.transactionmanagementservice.dto.TransactionEventRequestDTO;
-import com.ihomziak.transactionmanagementservice.dto.TransactionRequestDTO;
-import com.ihomziak.transactionmanagementservice.dto.TransactionResponseDTO;
-import com.ihomziak.transactionmanagementservice.dto.TransactionStatusResponseDTO;
+import com.ihomziak.transactionmanagementservice.dto.*;
 import com.ihomziak.transactionmanagementservice.entity.Transaction;
 import com.ihomziak.transactionmanagementservice.exception.TransactionNotFoundException;
 import com.ihomziak.transactionmanagementservice.mapper.impl.MapStructureMapperImpl;
@@ -30,17 +27,17 @@ import java.util.UUID;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final TransactionCacheRepositoryImpl redisCacheRepository;
     private final TransactionEventsProducer transactionEventsProducer;
+    private final CacheRepository cacheRepository;
 
     private final ObjectMapper objectMapper;
     private final MapStructureMapperImpl structureMapper;
 
     @Autowired
-    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionCacheRepositoryImpl redisCacheRepository, TransactionEventsProducer transactionEventsProducer, ObjectMapper objectMapper, MapStructureMapperImpl structureMapper) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, TransactionEventsProducer transactionEventsProducer, CacheRepository cacheRepository, ObjectMapper objectMapper, MapStructureMapperImpl structureMapper) {
         this.transactionRepository = transactionRepository;
-        this.redisCacheRepository = redisCacheRepository;
         this.transactionEventsProducer = transactionEventsProducer;
+        this.cacheRepository = cacheRepository;
         this.objectMapper = objectMapper;
         this.structureMapper = structureMapper;
     }
@@ -60,8 +57,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setTransactionDate(transactionDate);
 
         log.info("Save transaction into REDIS: {}", transaction);
-        String object = objectMapper.writeValueAsString(transaction);
-        this.redisCacheRepository.saveTransaction(transaction.getTransactionUuid(), object);
+        cacheRepository.save(transaction);
 
         TransactionStatus transactionStatus = transaction.getTransactionStatus();
         if (
@@ -87,35 +83,43 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public void processTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
         log.info("Consumer record: {}", consumerRecord.value());
+        TransactionEventResponseDTO responseMessage = objectMapper.readValue(consumerRecord.value(), TransactionEventResponseDTO.class);
 
-        TransactionResponseDTO transactionResponseDTO = objectMapper.readValue(consumerRecord.value(), TransactionResponseDTO.class);
-
-        if (transactionResponseDTO.getErrorMessage() != null) {
+        if (responseMessage.getTransactionStatus().equals(TransactionStatus.FAILED)) {
             // додати ексепшин кастомний
-            throw new RuntimeException("Transaction response error: " + transactionResponseDTO.getErrorMessage());
+            throw new RuntimeException("Transaction FAILED. Message: " + responseMessage.getStatusMessage());
         }
 
-        // Fetch the transaction from the database, ensuring we have the primary key (transactionId). ми маємо тягнути з редіса
+        // Fetch the updateStoredTransaction from the database, ensuring we have the primary key (transactionId). ми маємо тягнути з редіса
         // транзакцію і перевіряти
-        Optional<Transaction> existingTransactionOpt = Optional.ofNullable(transactionRepository.findTransactionByTransactionUuid(transactionResponseDTO.getTransactionUuid()));
-
-        if (existingTransactionOpt.isEmpty()) {
-            log.info("Transaction with UUID {} not found in database", transactionResponseDTO.getTransactionUuid());
-            throw new TransactionNotFoundException("Transaction with UUID " + transactionResponseDTO.getTransactionUuid() + " not found");
+        Optional<Transaction> currentRedisTransaction = Optional.ofNullable(cacheRepository.findTransactionByTransactionUuid(responseMessage.getTransactionUuid()));
+        if (currentRedisTransaction.isEmpty()) {
+            throw new TransactionNotFoundException("Transaction with UUID " + responseMessage.getTransactionUuid() + " not found");
         }
 
-        Transaction updatedTransaction = existingTransactionOpt.get();
-        updatedTransaction.setTransactionStatus(transactionResponseDTO.getTransactionStatus());
-        updatedTransaction.setLastUpdate(LocalDateTime.now());
+        Optional<Transaction>  storedTransaction = Optional.ofNullable(transactionRepository.findTransactionByTransactionUuid(currentRedisTransaction.get().getTransactionUuid()));
+        if (storedTransaction.isEmpty()) {
+            log.info("Transaction with UUID {} not found in database", responseMessage.getTransactionUuid());
+            throw new TransactionNotFoundException("Transaction with UUID " + responseMessage.getTransactionUuid() + " not found");
+        }
 
-        // Save the updated transaction in the database (this will update instead of insert)
-        this.transactionRepository.save(updatedTransaction);
+        Transaction updateStoredTransaction = storedTransaction.get();
+        updateStoredTransaction.setTransactionStatus(responseMessage.getTransactionStatus());
+        updateStoredTransaction.setLastUpdate(LocalDateTime.now());
 
-        // Update Redis with the latest transaction data
-        String updatedObject = objectMapper.writeValueAsString(updatedTransaction);
-        log.info("Update transaction in REDIS db, updatedObject: {}", updatedObject);
-        this.redisCacheRepository.saveTransaction(updatedTransaction.getTransactionUuid(), updatedObject);
 
-        log.info("Transaction with UUID {} successfully updated, transaction status: {}", transactionResponseDTO.getTransactionUuid(), updatedTransaction.getTransactionStatus());
+        // Save the updated updateStoredTransaction in the database (this will update instead of insert)
+
+        log.info("Update transaction record in REDIS db, updateStoredTransaction: {}", updateStoredTransaction);
+        cacheRepository.save(updateStoredTransaction);
+
+        log.info("Update transaction record in MySQL db, updateStoredTransaction: {}", updateStoredTransaction);
+        this.transactionRepository.save(updateStoredTransaction);
+        log.info("Transaction with UUID {} successfully updated, updateStoredTransaction status: {}", responseMessage.getTransactionUuid(), updateStoredTransaction.getTransactionStatus());
+    }
+
+    @Override
+    public Transaction getTransaction(String uuid) {
+        return this.cacheRepository.findTransactionByTransactionUuid(uuid);
     }
 }

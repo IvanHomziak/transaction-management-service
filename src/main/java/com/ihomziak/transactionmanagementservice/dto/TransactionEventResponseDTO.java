@@ -8,11 +8,10 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Builder
-public class TransactionEventRequestDTO {
+public class TransactionEventResponseDTO {
     private String transactionUuid;
-    private String senderUuid;
-    private String receiverUuid;
-    private Double amount;
     private TransactionStatus transactionStatus;
+    private String statusMessage;
 }
