@@ -93,11 +93,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public void processTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
+    public void processTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException, TransactionFailedException {
         log.info("Processing consumer record: {}", consumerRecord.value());
         TransactionEventResponseDTO responseMessage = deserializeConsumerRecord(consumerRecord);
-
-        if (isFailedTransaction(responseMessage)) return;
 
         Transaction redisTransaction = fetchTransactionFromRedis(responseMessage.getTransactionUuid());
         Transaction storedTransaction = fetchTransactionFromDatabase(redisTransaction.getTransactionUuid());
@@ -105,15 +103,13 @@ public class TransactionServiceImpl implements TransactionService {
         updateTransactionStatus(storedTransaction, responseMessage.getTransactionStatus());
     }
 
-    private TransactionEventResponseDTO deserializeConsumerRecord(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
+    private TransactionEventResponseDTO deserializeConsumerRecord(ConsumerRecord<Integer, String> consumerRecord)
+            throws JsonProcessingException {
         return objectMapper.readValue(consumerRecord.value(), TransactionEventResponseDTO.class);
     }
 
-    private boolean isFailedTransaction(TransactionEventResponseDTO responseMessage) {
-        if (TransactionStatus.FAILED.equals(responseMessage.getTransactionStatus())) {
-            throw new TransactionFailedException("Transaction FAILED. Message: " + responseMessage.getStatusMessage());
-        }
-        return false;
+    private boolean isTransactionFailed(TransactionEventResponseDTO responseMessage) {
+        return TransactionStatus.FAILED.equals(responseMessage.getTransactionStatus());
     }
 
     private Transaction fetchTransactionFromRedis(String transactionUuid) {
@@ -141,6 +137,12 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Transaction getTransaction(String uuid) {
-        return cacheRepository.findTransactionByTransactionUuid(uuid);
+        Optional<Transaction> transactionOptional = Optional.ofNullable(cacheRepository.findTransactionByTransactionUuid(uuid));
+
+        if (transactionOptional.isEmpty()) {
+            throw new TransactionNotFoundException("Transaction with UUID " + uuid + " not found in Redis database");
+        }
+
+        return transactionOptional.get();
     }
 }
