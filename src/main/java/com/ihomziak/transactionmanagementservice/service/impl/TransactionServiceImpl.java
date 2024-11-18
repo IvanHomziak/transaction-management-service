@@ -78,11 +78,11 @@ public class TransactionServiceImpl implements TransactionService {
         transactionRepository.save(transaction);
     }
 
-    private void sendTransactionEvent(Transaction transaction) throws JsonProcessingException {
-        TransactionEventRequestDTO eventRequestDTO = structureMapper.mapTransactionToTransactionEventRequestDTO(transaction);
-        String transactionMessage = objectMapper.writeValueAsString(eventRequestDTO);
-        log.info("Sending transaction event message: {}", transactionMessage);
-        transactionEventsProducer.sendTransactionMessage(1, transactionMessage);
+    private void sendTransactionEvent(Transaction transaction) {
+        AvroTransactionEventRequestDTO eventRequestDTO = structureMapper.mapTransactionToAvroTransactionEventRequestDTO(transaction);
+
+        log.info("Sending transaction event message: {}", eventRequestDTO);
+        transactionEventsProducer.sendTransactionMessage(UUID.randomUUID().toString(), eventRequestDTO);
     }
 
     private TransactionStatusResponseDTO mapToTransactionStatusResponse(Transaction transaction) {

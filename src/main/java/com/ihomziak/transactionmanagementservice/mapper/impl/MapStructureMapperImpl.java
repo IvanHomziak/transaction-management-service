@@ -1,9 +1,6 @@
 package com.ihomziak.transactionmanagementservice.mapper.impl;
 
-import com.ihomziak.transactionmanagementservice.dto.TransactionEventRequestDTO;
-import com.ihomziak.transactionmanagementservice.dto.TransactionRequestDTO;
-import com.ihomziak.transactionmanagementservice.dto.TransactionResponseDTO;
-import com.ihomziak.transactionmanagementservice.dto.TransactionStatusResponseDTO;
+import com.ihomziak.transactionmanagementservice.dto.*;
 import com.ihomziak.transactionmanagementservice.entity.Transaction;
 import com.ihomziak.transactionmanagementservice.mapper.MapStructureMapper;
 import org.springframework.stereotype.Component;
@@ -63,5 +60,21 @@ public class MapStructureMapperImpl implements MapStructureMapper {
                 .transactionStatus(transaction.getTransactionStatus())
                 .transactionUuid(transaction.getTransactionUuid())
                 .build();
+    }
+
+    @Override
+    public AvroTransactionEventRequestDTO mapTransactionToAvroTransactionEventRequestDTO(Transaction transaction) {
+        if (transaction == null) {
+            return null;
+        }
+
+        AvroTransactionEventRequestDTO avroTransactionEventRequestDTO = new AvroTransactionEventRequestDTO();
+
+        avroTransactionEventRequestDTO.setTransactionUuid(transaction.getTransactionUuid());
+        avroTransactionEventRequestDTO.setSenderUuid(transaction.getSenderUuid());
+        avroTransactionEventRequestDTO.setReceiverUuid(transaction.getReceiverUuid());
+        avroTransactionEventRequestDTO.setAmount(transaction.getAmount());
+
+        return avroTransactionEventRequestDTO;
     }
 }
