@@ -1,5 +1,22 @@
 version: '3.8'
 services:
+
+#  transaction-management-service-app:
+#    container_name: transaction-management-service
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "9091:9091"
+#    env_file:
+#      - .env.docker
+#    networks:
+#      - stack
+#    depends_on:
+#      mysql-tms:
+#        condition: service_healthy
+
+  # MySQL Service
   mysql-tms:
     container_name: mysql-tms-c
     image: mysql
@@ -21,21 +38,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  transaction-management-service-app:
-    container_name: transaction-management-service
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "9091:9091"
-    env_file:
-      - .env.docker
-    networks:
-      - stack
-    depends_on:
-      mysql-tms:
-        condition: service_healthy
 
   zoo1:
     image: confluentinc/cp-zookeeper:7.3.2
