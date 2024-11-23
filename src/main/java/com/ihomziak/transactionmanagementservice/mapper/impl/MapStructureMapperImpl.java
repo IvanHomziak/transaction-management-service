@@ -46,7 +46,6 @@ public class MapStructureMapperImpl implements MapStructureMapper {
         return TransactionStatusResponseDTO.builder()
                 .transactionUuid(transaction.getTransactionUuid())
                 .startTransactionTime(transaction.getTransactionDate())
-                .finishedTransactionTime(transaction.getLastUpdate())
                 .build();
     }
 

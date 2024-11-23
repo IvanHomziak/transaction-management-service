@@ -57,7 +57,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         sendTransactionEvent(transaction);
 
-        return mapToTransactionStatusResponse(transaction);
+        return createTransactionStatusResponse(transaction);
     }
 
     private Transaction prepareTransaction(TransactionRequestDTO transactionDTO) {
@@ -85,7 +85,7 @@ public class TransactionServiceImpl implements TransactionService {
         transactionEventsProducer.sendTransactionMessage(1, transactionMessage);
     }
 
-    private TransactionStatusResponseDTO mapToTransactionStatusResponse(Transaction transaction) {
+    private TransactionStatusResponseDTO createTransactionStatusResponse(Transaction transaction) {
         TransactionStatusResponseDTO responseDTO = structureMapper.mapTransactionToTransactionStatusResponseDTO(transaction);
         log.info("Mapped transaction status response: {}", responseDTO);
         return responseDTO;

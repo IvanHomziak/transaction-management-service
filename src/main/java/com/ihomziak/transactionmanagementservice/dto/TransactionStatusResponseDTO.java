@@ -13,5 +13,4 @@ import java.time.LocalDateTime;
 public class TransactionStatusResponseDTO {
     private String transactionUuid;
     private LocalDateTime startTransactionTime;
-    private LocalDateTime finishedTransactionTime;
 }
