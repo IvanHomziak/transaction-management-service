@@ -1,6 +1,6 @@
 package com.ihomziak.transactionmanagementservice.exceptionhandler;
 
-import com.ihomziak.transactionmanagementservice.dto.ErrorDTO;
+import com.ihomziak.transactioncommon.dto.ErrorDTO;
 import com.ihomziak.transactionmanagementservice.exception.TransactionNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;

@@ -1,6 +1,6 @@
 package com.ihomziak.transactionmanagementservice.utils;
 
-import com.ihomziak.transactioncommon.TransactionStatus;
+import com.ihomziak.transactioncommon.utils.TransactionStatus;
 
 public class TransactionStatusChecker {
 

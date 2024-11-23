@@ -141,7 +141,7 @@
         </dependency>
         <dependency>
             <groupId>com.ihomziak.transactioncommon</groupId>
-            <artifactId>transaction-common</artifactId>
+            <artifactId>client-transaction-common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
@@ -180,7 +180,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <connectionUrl>scm:git:https://github.com/IvanHomziak/transaction-common.git</connectionUrl>
+                    <connectionUrl>scm:git:https://github.com/IvanHomziak/client-transaction-common.git</connectionUrl>
                     <checkoutDirectory>./transaction-common</checkoutDirectory>
                 </configuration>
             </plugin>

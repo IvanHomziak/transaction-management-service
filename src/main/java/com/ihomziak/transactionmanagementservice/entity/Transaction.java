@@ -1,6 +1,6 @@
 package com.ihomziak.transactionmanagementservice.entity;
 
-import com.ihomziak.transactioncommon.TransactionStatus;
+import com.ihomziak.transactioncommon.utils.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

@@ -11,7 +11,7 @@ import com.ihomziak.transactionmanagementservice.exception.TransactionNotFoundEx
 import com.ihomziak.transactionmanagementservice.mapper.impl.MapStructureMapperImpl;
 import com.ihomziak.transactionmanagementservice.producer.TransactionEventsProducer;
 import com.ihomziak.transactionmanagementservice.service.TransactionService;
-import com.ihomziak.transactioncommon.TransactionStatus;
+import com.ihomziak.transactioncommon.utils.TransactionStatus;
 import com.ihomziak.transactionmanagementservice.utils.TransactionStatusChecker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
