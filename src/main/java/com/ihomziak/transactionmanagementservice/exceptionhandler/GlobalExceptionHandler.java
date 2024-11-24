@@ -80,7 +80,9 @@ public class GlobalExceptionHandler {
         if (HttpStatus.INTERNAL_SERVER_ERROR.equals(status)) {
             request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex, WebRequest.SCOPE_REQUEST);
         }
-        System.out.println(new ResponseEntity<>(errorMessage, headers, status));
-        return new ResponseEntity<>(errorMessage, headers, status);
+
+        ErrorDTO errorResponse = errorMessage != null ? errorMessage : new ErrorDTO("An unexpected error occurred");
+
+        return new ResponseEntity<>(errorResponse, headers, status);
     }
 }
