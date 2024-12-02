@@ -86,7 +86,7 @@ class TransactionServiceImplTest {
     }
 
     @Test
-    void createTransaction_SaveToDatabase() throws JsonProcessingException {
+    void createTransaction_SaveTransaction() throws JsonProcessingException {
         transaction.setTransactionStatus(TransactionStatus.COMPLETED);
 
         when(structureMapper.mapTransactionRequestDTOToTransaction(transactionRequestDTO)).thenReturn(transaction);

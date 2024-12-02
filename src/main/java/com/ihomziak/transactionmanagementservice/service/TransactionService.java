@@ -23,7 +23,5 @@ public interface TransactionService {
 
     void sendTransactionEvent(Transaction transaction) throws JsonProcessingException;
 
-    void saveToDatabase(Transaction transaction);
-
-    void rollBackTransaction(Transaction transaction);
+    void saveTransaction(Transaction transaction);
 }

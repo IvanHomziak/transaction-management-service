@@ -52,7 +52,7 @@ public class TransactionScheduler {
                   if (status.equals(TransactionStatus.CREATED)) {
                       log.info("Update transaction with status 'CREATED'  to 'STARTED'");
                       transaction.setTransactionStatus(TransactionStatus.STARTED);
-                      this.transactionService.saveToDatabase(transaction);
+                      this.transactionService.saveTransaction(transaction);
                       log.info("Transaction successfully updated. Status was changed to 'STARTED'");
                   }
 
