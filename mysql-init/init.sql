@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS transaction (
                                            sender_uuid VARCHAR(255) NOT NULL,                        -- UUID of the sender
                                            receiver_uuid VARCHAR(255) NOT NULL,                      -- UUID of the receiver
                                            amount DOUBLE NOT NULL,                                   -- Amount of transaction
-                                           transaction_status ENUM('NEW', 'COMPLETED', 'FAILED') NOT NULL,  -- Enum for transaction status
+                                           transaction_status ENUM('NEW', 'CREATED', 'STARTED', 'COMPLETED', 'CANCELED', 'FAILED') NOT NULL,  -- Enum for transaction status
 #                                            transaction_type ENUM('DEPOSIT', 'WITHDRAWAL', 'TRANSFER') NOT NULL,  -- Enum for transaction type
                                            transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,     -- Creation timestamp
                                            last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP  -- Last update timestamp
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS transaction (
 INSERT INTO transaction (transaction_uuid, sender_uuid, receiver_uuid, amount, transaction_status
 #                         , transaction_type
 )
-VALUES ('123e4567-e89b-12d3-a456-426614174000', '123e4567-e89b-12d3-a456-23423423', '3840ade4-f8ad-4829-a7af-b88192d52243', 100.00, 'NEW'
+VALUES ('123e4567-e89b-12d3-a456-426614174001', '123e4567-e89b-12d3-a456-23423423', '3840ade4-f8ad-4829-a7af-b88192d52243', 100.00, 'NEW'
 #        , 'TRANSFER'
        );
 

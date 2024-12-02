@@ -1,6 +1,7 @@
 package com.ihomziak.transactionmanagementservice.exceptionhandler;
 
 import com.ihomziak.transactioncommon.dto.ErrorDTO;
+import com.ihomziak.transactionmanagementservice.exception.TransactionCancellationException;
 import com.ihomziak.transactionmanagementservice.exception.TransactionNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +23,8 @@ public class GlobalExceptionHandler {
      * @param request The current request
      */
     @ExceptionHandler({
-            TransactionNotFoundException.class
+            TransactionNotFoundException.class,
+            TransactionCancellationException.class,
     })
     @Nullable
     public final ResponseEntity<ErrorDTO> handleException(Exception ex, WebRequest request) {
@@ -33,6 +35,10 @@ public class GlobalExceptionHandler {
         if (ex instanceof TransactionNotFoundException transactionNotFoundException) {
             HttpStatus status = HttpStatus.NOT_FOUND;
             return handleException(transactionNotFoundException, headers, status, request);
+
+        } else if (ex instanceof TransactionCancellationException transactionCancellationException) {
+            HttpStatus status = HttpStatus.FORBIDDEN;
+            return handleException(transactionCancellationException, headers, status, request);
 
         } else {
             if (log.isWarnEnabled()) {

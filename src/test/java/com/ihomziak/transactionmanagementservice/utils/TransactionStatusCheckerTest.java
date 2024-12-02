@@ -9,36 +9,36 @@ class TransactionStatusCheckerTest {
 
     @Test
     void isTransactionStatusNewCompletedOrFailed_ShouldReturnTrue_ForNewStatus() {
-        assertTrue(TransactionStatusChecker.isTransactionStatusNewCompletedOrFailed(TransactionStatus.NEW));
+        assertTrue(TransactionStatusChecker.isTransactionStatusCompleted(TransactionStatus.NEW));
     }
 
     @Test
     void isTransactionStatusNewCompletedOrFailed_ShouldReturnTrue_ForCompletedStatus() {
-        assertTrue(TransactionStatusChecker.isTransactionStatusNewCompletedOrFailed(TransactionStatus.COMPLETED));
+        assertTrue(TransactionStatusChecker.isTransactionStatusCompleted(TransactionStatus.COMPLETED));
     }
 
     @Test
     void isTransactionStatusNewCompletedOrFailed_ShouldReturnTrue_ForFailedStatus() {
-        assertTrue(TransactionStatusChecker.isTransactionStatusNewCompletedOrFailed(TransactionStatus.FAILED));
+        assertTrue(TransactionStatusChecker.isTransactionStatusCompleted(TransactionStatus.FAILED));
     }
 
     @Test
     void isTransactionStatusNewCompletedOrFailed_ShouldReturnFalse_ForCreatedStatus() {
-        assertFalse(TransactionStatusChecker.isTransactionStatusNewCompletedOrFailed(TransactionStatus.CREATED));
+        assertFalse(TransactionStatusChecker.isTransactionStatusCompleted(TransactionStatus.CREATED));
     }
 
     @Test
     void isTransactionStatusNewCompletedOrFailed_ShouldReturnFalse_ForStartedStatus() {
-        assertFalse(TransactionStatusChecker.isTransactionStatusNewCompletedOrFailed(TransactionStatus.STARTED));
+        assertFalse(TransactionStatusChecker.isTransactionStatusCompleted(TransactionStatus.STARTED));
     }
 
     @Test
     void isTransactionStatusNewCompletedOrFailed_ShouldReturnFalse_ForDeclinedStatus() {
-        assertFalse(TransactionStatusChecker.isTransactionStatusNewCompletedOrFailed(TransactionStatus.DECLINED));
+        assertFalse(TransactionStatusChecker.isTransactionStatusCompleted(TransactionStatus.DECLINED));
     }
 
     @Test
     void isTransactionStatusNewCompletedOrFailed_ShouldReturnFalse_ForCanceledStatus() {
-        assertFalse(TransactionStatusChecker.isTransactionStatusNewCompletedOrFailed(TransactionStatus.CANCELED));
+        assertFalse(TransactionStatusChecker.isTransactionStatusCompleted(TransactionStatus.CANCELED));
     }
 }

@@ -86,7 +86,7 @@ class TransactionControllerTest {
 
     @Test
     void getTransaction_Success() throws Exception {
-        when(transactionService.getTransaction(anyString())).thenReturn(transaction);
+        when(transactionService.fetchTransaction(anyString())).thenReturn(transaction);
 
         mockMvc.perform(get("/api/transaction/{uuid}", "transaction-uuid")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -96,7 +96,7 @@ class TransactionControllerTest {
 
     @Test
     void getTransaction_NotFound() throws Exception {
-        when(transactionService.getTransaction(anyString()))
+        when(transactionService.fetchTransaction(anyString()))
                 .thenThrow(new TransactionNotFoundException("Transaction not found"));
 
         mockMvc.perform(get("/api/transaction/{uuid}", "123")

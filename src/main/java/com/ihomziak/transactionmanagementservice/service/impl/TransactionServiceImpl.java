@@ -49,13 +49,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction transaction = prepareTransaction(transactionDTO);
 
-        saveToCache(transaction);
-
-        if (TransactionStatusChecker.isTransactionStatusNewCompletedOrFailed(transaction.getTransactionStatus())) {
-            saveToDatabase(transaction);
-        }
-
-        sendTransactionEvent(transaction);
+        saveToDatabase(transaction);
 
         return mapToTransactionStatusResponse(transaction);
     }
@@ -64,6 +58,10 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction transaction = structureMapper.mapTransactionRequestDTOToTransaction(transactionDTO);
         transaction.setTransactionUuid(UUID.randomUUID().toString());
         transaction.setTransactionDate(LocalDateTime.now());
+
+        if (transaction.getTransactionStatus().equals(TransactionStatus.NEW)) {
+            transaction.setTransactionStatus(TransactionStatus.CREATED);
+        }
         log.info("Prepared transaction entity: {}", transaction);
         return transaction;
     }
@@ -73,7 +71,9 @@ public class TransactionServiceImpl implements TransactionService {
         cacheRepository.save(transaction);
     }
 
-    private void saveToDatabase(Transaction transaction) {
+    @Override
+    @Transactional
+    public void saveToDatabase(Transaction transaction) {
         log.info("Saving transaction to MySQL: transactionUuid={}, status={}", transaction.getTransactionUuid(), transaction.getTransactionStatus());
         transactionRepository.save(transaction);
     }
@@ -100,16 +100,16 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction redisTransaction = fetchTransactionFromRedis(responseMessage.getTransactionUuid());
         Transaction storedTransaction = fetchTransactionFromDatabase(redisTransaction.getTransactionUuid());
 
-        updateTransactionStatus(storedTransaction, responseMessage.getTransactionStatus());
+        if (storedTransaction.getTransactionStatus().equals(TransactionStatus.CANCELED)) {
+            rollBackTransaction(storedTransaction);
+        } else {
+            updateTransactionStatus(storedTransaction, responseMessage.getTransactionStatus());
+        }
     }
 
     private TransactionEventResponseDTO deserializeConsumerRecord(ConsumerRecord<Integer, String> consumerRecord)
             throws JsonProcessingException {
         return objectMapper.readValue(consumerRecord.value(), TransactionEventResponseDTO.class);
-    }
-
-    private boolean isTransactionFailed(TransactionEventResponseDTO responseMessage) {
-        return TransactionStatus.FAILED.equals(responseMessage.getTransactionStatus());
     }
 
     private Transaction fetchTransactionFromRedis(String transactionUuid) {
@@ -136,7 +136,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Transaction getTransaction(String uuid) {
+    public Transaction fetchTransaction(String uuid) {
         Optional<Transaction> transactionOptional = Optional.ofNullable(cacheRepository.findTransactionByTransactionUuid(uuid));
 
         if (transactionOptional.isEmpty()) {
@@ -144,5 +144,29 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         return transactionOptional.get();
+    }
+
+    @Override
+    @Transactional
+    public void cancelTransaction(String id) {
+        log.info("Rolling back transaction with id: {}", id);
+
+        Transaction transaction = this.transactionRepository.findTransactionByTransactionUuid(id)
+                .orElseThrow(() -> new TransactionNotFoundException("Transaction with UUID " + id + " not found in database"));
+
+        if (transaction.getTransactionStatus().equals(TransactionStatus.COMPLETED)) {
+            throw new TransactionCancellationException("Transaction with UUID " + id + "is 'COMPLETED' and cannot be canceled.");
+        } else {
+            transaction.setTransactionStatus(TransactionStatus.CANCELED);
+            transactionRepository.save(transaction);
+        }
+    }
+
+    @Override
+    public List<Transaction> fetchTransactionsByStatus(TransactionStatus status) {
+        log.info("Retrieving 'CREATED' transactions");
+
+        return this.transactionRepository.findTransactionByTransactionStatus(status)
+                .orElseThrow(() -> new TransactionNotFoundException("Transaction with status '" + status + "' not found"));
     }
 }

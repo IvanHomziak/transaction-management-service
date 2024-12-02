@@ -7,9 +7,8 @@ public class TransactionStatusChecker {
     private TransactionStatusChecker() {
     }
 
-    public static boolean isTransactionStatusNewCompletedOrFailed(TransactionStatus transaction) {
-        return transaction.equals(TransactionStatus.NEW) ||
-                transaction.equals(TransactionStatus.COMPLETED) ||
-                transaction.equals(TransactionStatus.FAILED);
+    public static boolean isTransactionStatusCompleted(TransactionStatus transaction) {
+        return transaction.equals(TransactionStatus.COMPLETED);
+
     }
 }
