@@ -6,13 +6,13 @@ import com.ihomziak.transactionmanagementservice.dao.CacheRepository;
 import com.ihomziak.transactionmanagementservice.dao.TransactionRepository;
 import com.ihomziak.transactionmanagementservice.dto.*;
 import com.ihomziak.transactionmanagementservice.entity.Transaction;
+import com.ihomziak.transactionmanagementservice.exception.TransactionCancellationException;
 import com.ihomziak.transactionmanagementservice.exception.TransactionFailedException;
 import com.ihomziak.transactionmanagementservice.exception.TransactionNotFoundException;
 import com.ihomziak.transactionmanagementservice.mapper.impl.MapStructureMapperImpl;
 import com.ihomziak.transactionmanagementservice.producer.TransactionEventsProducer;
 import com.ihomziak.transactionmanagementservice.service.TransactionService;
 import com.ihomziak.transactioncommon.utils.TransactionStatus;
-import com.ihomziak.transactionmanagementservice.utils.TransactionStatusChecker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,24 +52,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         saveToDatabase(transaction);
 
-        return mapToTransactionStatusResponse(transaction);
-    }
-
-    private Transaction prepareTransaction(TransactionRequestDTO transactionDTO) {
-        Transaction transaction = structureMapper.mapTransactionRequestDTOToTransaction(transactionDTO);
-        transaction.setTransactionUuid(UUID.randomUUID().toString());
-        transaction.setTransactionDate(LocalDateTime.now());
-
-        if (transaction.getTransactionStatus().equals(TransactionStatus.NEW)) {
-            transaction.setTransactionStatus(TransactionStatus.CREATED);
-        }
-        log.info("Prepared transaction entity: {}", transaction);
-        return transaction;
-    }
-
-    private void saveToCache(Transaction transaction) {
-        log.info("Saving transaction to Redis: {}", transaction);
-        cacheRepository.save(transaction);
+        return structureMapper.mapTransactionToTransactionStatusResponseDTO(transaction);
     }
 
     @Override
@@ -78,64 +62,35 @@ public class TransactionServiceImpl implements TransactionService {
         transactionRepository.save(transaction);
     }
 
-    private void sendTransactionEvent(Transaction transaction) throws JsonProcessingException {
+    @Override
+    public void rollBackTransaction(Transaction transaction) {
+        log.info("Rolling back transaction: {}", transaction);
+
+
+        // TODO:
+    }
+
+    @Override
+    public void sendTransactionEvent(Transaction transaction) throws JsonProcessingException {
         TransactionEventRequestDTO eventRequestDTO = structureMapper.mapTransactionToTransactionEventRequestDTO(transaction);
         String transactionMessage = objectMapper.writeValueAsString(eventRequestDTO);
         log.info("Sending transaction event message: {}", transactionMessage);
         transactionEventsProducer.sendTransactionMessage(1, transactionMessage);
     }
 
-    private TransactionStatusResponseDTO mapToTransactionStatusResponse(Transaction transaction) {
-        TransactionStatusResponseDTO responseDTO = structureMapper.mapTransactionToTransactionStatusResponseDTO(transaction);
-        log.info("Mapped transaction status response: {}", responseDTO);
-        return responseDTO;
+    @Override
+    @Transactional
+    public void processTransactionEventResponse(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException, TransactionFailedException {
+        log.info("Processing consumer record: {}", consumerRecord.value());
+        TransactionEventResponseDTO responseMessage = deserializeConsumerRecord(consumerRecord);
+
+        Transaction storedTransaction = fetchTransactionFromDatabase(responseMessage.getTransactionUuid());
+
+        updateAndSaveTransaction(storedTransaction, responseMessage.getTransactionStatus());
     }
 
     @Override
     @Transactional
-    public void processTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException, TransactionFailedException {
-        log.info("Processing consumer record: {}", consumerRecord.value());
-        TransactionEventResponseDTO responseMessage = deserializeConsumerRecord(consumerRecord);
-
-        Transaction redisTransaction = fetchTransactionFromRedis(responseMessage.getTransactionUuid());
-        Transaction storedTransaction = fetchTransactionFromDatabase(redisTransaction.getTransactionUuid());
-
-        if (storedTransaction.getTransactionStatus().equals(TransactionStatus.CANCELED)) {
-            rollBackTransaction(storedTransaction);
-        } else {
-            updateTransactionStatus(storedTransaction, responseMessage.getTransactionStatus());
-        }
-    }
-
-    private TransactionEventResponseDTO deserializeConsumerRecord(ConsumerRecord<Integer, String> consumerRecord)
-            throws JsonProcessingException {
-        return objectMapper.readValue(consumerRecord.value(), TransactionEventResponseDTO.class);
-    }
-
-    private Transaction fetchTransactionFromRedis(String transactionUuid) {
-        return Optional.ofNullable(cacheRepository.findTransactionByTransactionUuid(transactionUuid))
-                .orElseThrow(() -> new TransactionNotFoundException("Transaction with UUID " + transactionUuid + " not found in Redis"));
-    }
-
-    private Transaction fetchTransactionFromDatabase(String transactionUuid) {
-        return transactionRepository.findTransactionByTransactionUuid(transactionUuid)
-                .orElseThrow(() -> new TransactionNotFoundException("Transaction with UUID " + transactionUuid + " not found in MySQL database"));
-    }
-
-    private void updateTransactionStatus(Transaction transaction, TransactionStatus status) {
-        transaction.setTransactionStatus(status);
-        transaction.setLastUpdate(LocalDateTime.now());
-
-        log.info("Updating transaction in MySQL: {}", transaction);
-        transactionRepository.save(transaction);
-
-        log.info("Updating transaction in Redis: {}", transaction);
-        cacheRepository.save(transaction);
-
-        log.info("Transaction updated successfully: UUID={}, status={}", transaction.getTransactionUuid(), transaction.getTransactionStatus());
-    }
-
-    @Override
     public Transaction fetchTransaction(String uuid) {
         Optional<Transaction> transactionOptional = Optional.ofNullable(cacheRepository.findTransactionByTransactionUuid(uuid));
 
@@ -154,8 +109,10 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction transaction = this.transactionRepository.findTransactionByTransactionUuid(id)
                 .orElseThrow(() -> new TransactionNotFoundException("Transaction with UUID " + id + " not found in database"));
 
-        if (transaction.getTransactionStatus().equals(TransactionStatus.COMPLETED)) {
-            throw new TransactionCancellationException("Transaction with UUID " + id + "is 'COMPLETED' and cannot be canceled.");
+        if (transaction.getTransactionStatus().equals(TransactionStatus.STARTED) ||
+                transaction.getTransactionStatus().equals(TransactionStatus.CANCELED)) {
+            throw new TransactionCancellationException("Transaction with UUID " + id + "is '" + transaction.getTransactionStatus() + "'. Transaction cannot be canceled.");
+
         } else {
             transaction.setTransactionStatus(TransactionStatus.CANCELED);
             transactionRepository.save(transaction);
@@ -168,5 +125,37 @@ public class TransactionServiceImpl implements TransactionService {
 
         return this.transactionRepository.findTransactionByTransactionStatus(status)
                 .orElseThrow(() -> new TransactionNotFoundException("Transaction with status '" + status + "' not found"));
+    }
+
+    private Transaction prepareTransaction(TransactionRequestDTO transactionDTO) {
+        Transaction transaction = structureMapper.mapTransactionRequestDTOToTransaction(transactionDTO);
+        transaction.setTransactionUuid(UUID.randomUUID().toString());
+        transaction.setTransactionDate(LocalDateTime.now());
+
+        if (transaction.getTransactionStatus().equals(TransactionStatus.NEW)) {
+            transaction.setTransactionStatus(TransactionStatus.CREATED);
+        }
+        log.info("Prepared transaction entity: {}", transaction);
+        return transaction;
+    }
+
+    private void updateAndSaveTransaction(Transaction transaction, TransactionStatus status) {
+        transaction.setTransactionStatus(status);
+        transaction.setLastUpdate(LocalDateTime.now());
+
+        log.info("Updating transaction in MySQL: {}", transaction);
+        transactionRepository.save(transaction);
+
+        log.info("Transaction updated successfully: UUID={}, status={}", transaction.getTransactionUuid(), transaction.getTransactionStatus());
+    }
+
+    private TransactionEventResponseDTO deserializeConsumerRecord(ConsumerRecord<Integer, String> consumerRecord)
+            throws JsonProcessingException {
+        return objectMapper.readValue(consumerRecord.value(), TransactionEventResponseDTO.class);
+    }
+
+    private Transaction fetchTransactionFromDatabase(String transactionUuid) {
+        return transactionRepository.findTransactionByTransactionUuid(transactionUuid)
+                .orElseThrow(() -> new TransactionNotFoundException("Transaction with UUID " + transactionUuid + " not found in MySQL database"));
     }
 }

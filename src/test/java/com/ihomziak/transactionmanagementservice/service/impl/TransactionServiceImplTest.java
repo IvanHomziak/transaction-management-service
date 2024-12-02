@@ -126,7 +126,7 @@ class TransactionServiceImplTest {
     }
 
     @Test
-    void processTransaction_Success() throws JsonProcessingException {
+    void processTransaction_EventResponse_Success() throws JsonProcessingException {
         ConsumerRecord<Integer, String> consumerRecord = mock(ConsumerRecord.class);
         when(consumerRecord.value()).thenReturn("transaction-response");
 
@@ -138,14 +138,14 @@ class TransactionServiceImplTest {
         when(cacheRepository.findTransactionByTransactionUuid("transaction-uuid")).thenReturn(transaction);
         when(transactionRepository.findTransactionByTransactionUuid("transaction-uuid")).thenReturn(Optional.of(transaction));
 
-        transactionService.processTransaction(consumerRecord);
+        transactionService.processTransactionEventResponse(consumerRecord);
 
         verify(transactionRepository, times(1)).save(transaction);
         verify(cacheRepository, times(1)).save(transaction);
     }
 
     @Test
-    void processTransaction_NotFoundInRedis() throws JsonProcessingException {
+    void processTransaction_EventResponse_NotFoundInRedis() throws JsonProcessingException {
         ConsumerRecord<Integer, String> consumerRecord = mock(ConsumerRecord.class);
         when(consumerRecord.value()).thenReturn("transaction-response");
 
@@ -156,7 +156,7 @@ class TransactionServiceImplTest {
 
         when(cacheRepository.findTransactionByTransactionUuid("transaction-uuid")).thenReturn(null);
 
-        assertThrows(TransactionNotFoundException.class, () -> transactionService.processTransaction(consumerRecord));
+        assertThrows(TransactionNotFoundException.class, () -> transactionService.processTransactionEventResponse(consumerRecord));
         verify(cacheRepository, times(1)).findTransactionByTransactionUuid("transaction-uuid");
     }
 }

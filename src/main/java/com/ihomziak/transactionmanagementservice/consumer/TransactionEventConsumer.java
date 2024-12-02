@@ -22,6 +22,6 @@ public class TransactionEventConsumer {
     @KafkaListener(topics = {"${spring.kafka.topic.transaction-results-topic}"})
     public void onMessage(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
         log.info("Received ConsumerRecord: {}", consumerRecord.value());
-        this.transactionServiceImpl.processTransaction(consumerRecord);
+        this.transactionServiceImpl.processTransactionEventResponse(consumerRecord);
     }
 }

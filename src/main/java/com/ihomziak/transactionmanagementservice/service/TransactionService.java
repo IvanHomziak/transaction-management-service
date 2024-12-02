@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface TransactionService {
 
-    void processTransaction(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException;
+    void processTransactionEventResponse(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException;
 
     TransactionStatusResponseDTO createTransaction(TransactionRequestDTO transactionDTO) throws JsonProcessingException;
 
