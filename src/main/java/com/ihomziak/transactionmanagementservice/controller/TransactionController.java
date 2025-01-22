@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/transaction")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -21,17 +21,17 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
-    @PostMapping("/transaction")
+    @PostMapping
     public ResponseEntity<TransactionStatusResponseDTO> createTransaction(@RequestBody TransactionRequestDTO transactionDTO) throws JsonProcessingException {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.transactionService.createTransaction(transactionDTO));
     }
 
-    @GetMapping("/transaction/{uuid}")
+    @GetMapping("/{uuid}")
     public ResponseEntity<Transaction> getTransaction(@PathVariable String uuid) {
         return ResponseEntity.status(HttpStatus.OK).body(this.transactionService.fetchTransaction(uuid));
     }
 
-    @GetMapping("/transaction/cancel/{uuid}")
+    @GetMapping("/cancel/{uuid}")
     public ResponseEntity<String>  canselTransaction(@PathVariable String uuid) {
         this.transactionService.cancelTransaction(uuid);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Transaction CANCELED");
