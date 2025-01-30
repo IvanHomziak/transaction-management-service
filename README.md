@@ -42,8 +42,8 @@ The **Transaction Management Service** is a Spring Boot application designed for
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/IvanHomziak/transaction-management-service.git
-cd transaction-management-service
+git clone https://github.com/IvanHomziak/bankingapp-transaction-ms.git
+cd bankingapp-transaction-ms
 ```
 
 ### 2. Configure Environment Variables
@@ -70,7 +70,7 @@ mvn clean install
 Run the application locally:
 
 ```bash
-java -jar target/transaction-management-service.jar
+java -jar target/bankingapp-transaction-ms.jar
 ```
 
 ---
@@ -90,7 +90,7 @@ docker-compose up -d
 Build the Docker image for the service:
 
 ```bash
-docker build -t transaction-management-service .
+docker build -t bankingapp-transaction-ms .
 ```
 
 Start the service container:
@@ -168,4 +168,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-For issues or feature requests, feel free to create an issue in the [GitHub repository](https://github.com/IvanHomziak/transaction-management-service/issues).
+For issues or feature requests, feel free to create an issue in the [GitHub repository](https://github.com/IvanHomziak/bankingapp-transaction-ms/issues).

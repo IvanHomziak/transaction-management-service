@@ -10,11 +10,11 @@
     </parent>
 
     <groupId>com.ihomziak</groupId>
-    <artifactId>transaction-management-service</artifactId>
+    <artifactId>bankingapp-transaction-ms</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>transaction-management-service</name>
-    <description>transaction-management-service</description>
+    <name>bankingapp-transaction-ms</name>
+    <description>bankingapp-transaction-ms</description>
 
     <url/>
     <licenses>
@@ -124,9 +124,10 @@
             <artifactId>jedis</artifactId>
             <version>${jedis.version}</version>
         </dependency>
+        <!-- Custom Common Dependency -->
         <dependency>
-            <groupId>com.ihomziak.transactioncommon</groupId>
-            <artifactId>client-transaction-common</artifactId>
+            <groupId>com.ihomziak.bankingapp.common</groupId>
+            <artifactId>bankingapp-common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -268,7 +269,7 @@
     </dependencyManagement>
 
     <build>
-        <finalName>transaction-management-service</finalName>
+        <finalName>bankingapp-transaction-ms</finalName>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -310,8 +311,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <connectionUrl>scm:git:https://github.com/IvanHomziak/client-transaction-common.git</connectionUrl>
-                    <checkoutDirectory>./transaction-common</checkoutDirectory>
+                    <connectionUrl>scm:git:https://github.com/IvanHomziak/bankingapp-common.git</connectionUrl>
+                    <checkoutDirectory>./bankingapp-common</checkoutDirectory>
                 </configuration>
             </plugin>
             <plugin>
