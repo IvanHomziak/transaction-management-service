@@ -1,4 +1,4 @@
-package com.ihomziak.bankingapp.transactionms.consumer.consumer;
+package com.ihomziak.bankingapp.transactionms.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ihomziak.bankingapp.transactionms.service.impl.TransactionServiceImpl;
