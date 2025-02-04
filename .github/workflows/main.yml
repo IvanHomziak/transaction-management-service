@@ -1,0 +1,82 @@
+name: Build & Deploy Spring App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    name: Build and Deploy Spring Boot bankingapp-transaction-ms
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout основного репозиторію
+      - name: Checkout bankingapp-transaction-ms
+        uses: actions/checkout@v4
+
+      # 2️⃣ Checkout загального bankingapp-common
+      - name: Checkout bankingapp-common
+        uses: actions/checkout@v4
+        with:
+          repository: IvanHomziak/bankingapp-common
+          path: bankingapp-common
+
+      # 3️⃣ Встановлення JDK 17 + кешування Maven
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: maven
+
+      # 4️⃣ Встановлення bankingapp-common
+      - name: Install bankingapp-common
+        run: |
+          cd bankingapp-common
+          mvn clean install -DskipTests
+
+      # 5️⃣ Запуск тестів
+      - name: Run Unit Tests
+        run: mvn -B test --file pom.xml
+
+      # 6️⃣ Перевірка коду перед збіркою (опціонально)
+      - name: Verify project (Optional)
+        run: mvn verify
+
+      # 7️⃣ Збірка JAR
+      - name: Build bankingapp-transaction-ms Application
+        run: mvn clean package -DskipTests
+
+      # 8️⃣ Визначення тегу образу (динамічний)
+      - name: Define Image Tag
+        run: echo "IMAGE_TAG=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+
+      # 9️⃣ Логін у Docker Hub (перед створенням образу)
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      # 🔟 Збірка Docker-образу
+      - name: Build Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          dockerfile: Dockerfile
+          push: false
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/bankingapp-transaction-ms:${{ env.IMAGE_TAG }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/bankingapp-transaction-ms:latest
+
+      # 🔟 Пуш Docker-образу у Docker Hub
+      - name: Push image to Docker Hub
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          dockerfile: Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/bankingapp-transaction-ms:${{ env.IMAGE_TAG }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/bankingapp-transaction-ms:latest
