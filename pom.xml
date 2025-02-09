@@ -269,7 +269,7 @@
     </dependencyManagement>
 
     <build>
-        <finalName>bankingapp-transaction-ms</finalName>
+        <finalName>transaction-ms</finalName>
         <pluginManagement>
             <plugins>
                 <plugin>
